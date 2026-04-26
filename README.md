@@ -145,3 +145,71 @@ flowchart LR
 3. 增加失败恢复闭环：连续失败计数、扩搜索、多初值重试、自动触发重定位。  
 4. 增强质量门控：fitness 之外加入重叠率、位姿跳变、时序一致性。  
 5. 统一 `map->odom` 与 `odom->base` 的发布语义与时间戳策略。  
+
+---
+
+## 专项对比：`HViktorTsoi` vs `YWL0720`（重定位/纯定位）
+
+## 架构差异（本质）
+
+- `HViktorTsoi`：三节点协同  
+  - `laserMapping.cpp`（高频局部跟踪）  
+  - `global_localization.py`（低频全局 ICP）  
+  - `transform_fusion.py`（融合输出全局位姿）
+- `YWL0720`：单主节点 + 全局线程  
+  - 主线程负责 LIO 跟踪  
+  - 异步线程负责 SC 检索 + ICP 初始化  
+  - 成功后主线程一次性切换到全局树纯定位
+
+```mermaid
+flowchart LR
+    subgraph H[HViktorTsoi]
+      H1[FAST-LIO局部里程计] --> H3[transform_fusion]
+      H2[global_localization ICP输出map_to_odom] --> H3
+      H3 --> H4[global localization输出]
+    end
+    subgraph Y[YWL0720]
+      Y1[主线程LIO跟踪] --> Y3[状态更新]
+      Y2[global线程 SC+ICP] --> Y3
+      Y3 --> Y4[切换ikdtree_global纯定位]
+    end
+```
+
+## 重定位链路对比（细）
+
+- `HViktorTsoi`
+  - 触发：等待 `/initialpose`
+  - 候选：无全局候选检索，靠初值 + FOV 裁剪 ICP
+  - 成功判据：`fitness > LOCALIZATION_TH`
+  - 输出：发布 `/map_to_odom`，再经融合节点输出全局位姿
+
+- `YWL0720`
+  - 触发：初始化帧积累后异步执行
+  - 候选：`ScanContext` 检索候选帧 + yaw 初值
+  - 成功判据：ICP 后两次初始化结果位置一致（<2m）
+  - 输出：置 `global_localization_finish`，主线程执行 `global_update`
+
+## 基于地图纯定位对比（细）
+
+- `HViktorTsoi`
+  - 形态：持续局部跟踪 + 周期全局纠偏并行
+  - 优势：运行中纠偏连续、模块可替换性强
+  - 风险：全局召回弱，初值依赖强
+
+- `YWL0720`
+  - 形态：初始化重定位成功后切全局 `ikdtree` 稳态纯定位
+  - 优势：SC 召回增强初始化鲁棒性，纯定位阶段语义清晰
+  - 风险：`localization_mode` 参数未真正生效，失锁回切机制不足
+
+## 优缺点总结（只看这两者）
+
+- `HViktorTsoi` 更适合：快速工程落地、模块解耦调试、替换重定位后端。  
+- `YWL0720` 更适合：重视全局候选召回、希望“初始化后纯定位”边界清晰的方案。  
+- 二者共同短板：都缺完整 `Lost -> Relocalization` 自动闭环状态机。  
+
+## 推荐改造优先级（这两仓通用）
+
+1. 补显式状态机：`Tracking / Relocalizing / Lost / Recovery`。  
+2. 引入统一质量指标：有效点比例、残差统计、位姿跳变。  
+3. 失锁后自动触发重定位，并增加多初值/扩窗重试。  
+4. 统一 `map->odom` 融合与时间戳策略，减少跨节点时序隐患。  
