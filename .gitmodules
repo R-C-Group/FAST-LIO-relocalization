@@ -1,0 +1,18 @@
+[submodule "HViktorTsoi_FAST_LIO_LOCALIZATION"]
+	path = HViktorTsoi_FAST_LIO_LOCALIZATION
+	url = https://github.com/HViktorTsoi/FAST_LIO_LOCALIZATION.git
+[submodule "engcang_FAST-LIO-Localization-QN"]
+	path = engcang_FAST-LIO-Localization-QN
+	url = https://github.com/engcang/FAST-LIO-Localization-QN.git
+[submodule "YWL0720_FAST-LOCALIZATION"]
+	path = YWL0720_FAST-LOCALIZATION
+	url = https://github.com/YWL0720/FAST-LOCALIZATION.git
+[submodule "Liansheng-Wang_faster_lio_localization"]
+	path = Liansheng-Wang_faster_lio_localization
+	url = https://github.com/Liansheng-Wang/faster_lio_localization.git
+[submodule "PolarisXQ_Fast-LIO2-Localization"]
+	path = PolarisXQ_Fast-LIO2-Localization
+	url = https://github.com/PolarisXQ/Fast-LIO2-Localization.git
+[submodule "iral-ntua_FAST_LIO_LOCALIZATION"]
+	path = iral-ntua_FAST_LIO_LOCALIZATION
+	url = https://github.com/iral-ntua/FAST_LIO_LOCALIZATION.git
