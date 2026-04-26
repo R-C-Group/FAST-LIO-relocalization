@@ -39,7 +39,7 @@ https://github.com/iral-ntua/FAST_LIO_LOCALIZATION
 
 ```mermaid
 flowchart LR
-    A[HViktorTsoi] --> A1[/initialpose 初值]
+    A[HViktorTsoi] --> A1[initialpose 初值]
     A1 --> A2[FOV裁剪 + Open3D ICP粗精]
     A2 --> A3[发布/map_to_odom]
 
@@ -51,7 +51,7 @@ flowchart LR
     C1 --> C2[PCL ICP粗精]
     C2 --> C3[两次结果一致后通过]
 
-    D[Liansheng] --> D1[/initialpose或yaml初值]
+    D[Liansheng] --> D1[initialpose或yaml初值]
     D1 --> D2[NDT粗配 + ICP精配]
     D2 --> D3[flg_location_inited=true]
 
